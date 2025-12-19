@@ -1,0 +1,3 @@
+# Parser dependencies
+# Minimal for C01 - stdlib only
+# pypdf and python-pptx added in C09/C10
