@@ -8,6 +8,9 @@ out/
 docs/
 
 # Env
+backend/.venv/
+frontend/.venv/
+.venv/
 .env*
 
 # Database
