@@ -1,0 +1,23 @@
+# Build
+build/
+dist/
+node_modules/
+__pycache__/
+.next/
+out/
+docs/
+
+# Env
+.env*
+
+# Database
+*.db
+
+# Models
+CLAUDE.md
+
+# IDE
+.claude/
+.cursor/
+.vercel/
+
