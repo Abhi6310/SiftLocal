@@ -1,0 +1,31 @@
+name: SiftLocal CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build containers
+        run: docker compose -f docker/docker-compose.yml build
+
+      - name: Run backend tests
+        run: docker compose -f docker/docker-compose.yml run --rm backend pytest tests/ -v
+
+      - name: Run frontend tests
+        run: docker compose -f docker/docker-compose.yml run --rm frontend npm test -- --passWithNoTests
+
+      - name: Verify containers start
+        run: |
+          docker compose -f docker/docker-compose.yml up -d
+          sleep 3
+          docker compose -f docker/docker-compose.yml ps
+          docker compose -f docker/docker-compose.yml down
