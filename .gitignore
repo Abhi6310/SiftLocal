@@ -15,6 +15,7 @@ frontend/.venv/
 
 # Database
 *.db
+data/
 
 # Models
 CLAUDE.md
