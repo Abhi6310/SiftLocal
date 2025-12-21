@@ -1,0 +1,34 @@
+services:
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    networks:
+      - siftlocal-internal
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    networks:
+      - siftlocal-internal
+    depends_on:
+      - parser
+
+  parser:
+    build:
+      context: ../parser
+      dockerfile: Dockerfile
+    networks:
+      - siftlocal-internal
+
+networks:
+  siftlocal-internal:
+    driver: bridge
+    internal: true
