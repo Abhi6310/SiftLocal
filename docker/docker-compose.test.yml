@@ -1,0 +1,37 @@
+#Test compose file for running integration tests
+services:
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    networks:
+      - siftlocal-internal
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../data:/app/data
+    networks:
+      - siftlocal-internal
+    depends_on:
+      - parser
+
+  parser:
+    build:
+      context: ../parser
+      dockerfile: Dockerfile
+    networks:
+      - siftlocal-internal
+
+networks:
+  siftlocal-internal:
+    driver: bridge
+    internal: true
