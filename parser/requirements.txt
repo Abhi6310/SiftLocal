@@ -1,3 +1,2 @@
 # Parser dependencies
-# Minimal for now stdlib only
-# pypdf and python-pptx added later
+pypdf>=4.0.0
