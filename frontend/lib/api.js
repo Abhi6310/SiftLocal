@@ -28,3 +28,18 @@ export async function getAuthStatus() {
   });
   return response.json();
 }
+
+export async function uploadDocument(file) {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await fetch(`${API_BASE}/api/documents/upload`, {
+    method: 'POST',
+    credentials: 'include',
+    body: formData
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Upload failed');
+  }
+  return response.json();
+}
