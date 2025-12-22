@@ -27,8 +27,9 @@ def parse_document(content: bytes, file_type: str) -> ParseResult:
         cmd = ["docker", "exec", "-i", PARSER_CONTAINER, "python", "-m", "worker"]
     else:
         #direct call for testing without docker
-        parser_dir = os.path.join(os.path.dirname(__file__), "..", "..", "..", "parser")
-        cmd = ["python", "-m", "worker"]
+        #in docker container, parser is at /parser; locally it's at ../../../parser
+        parser_dir = "/parser" if os.path.exists("/parser") else os.path.join(os.path.dirname(__file__), "..", "..", "..", "parser")
+        cmd = ["python3", "-m", "worker"]
         cwd = os.path.abspath(parser_dir)
     try:
         result = subprocess.run(

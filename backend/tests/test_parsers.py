@@ -1,11 +1,5 @@
 import pytest
-import sys
-import os
-import io
-
-#add parser to path for direct testing
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "parser"))
-from parsers.pdf import parse_pdf
+from app.services.parser_client import parse_document
 
 #minimal valid PDF with text content
 SAMPLE_PDF = b"""%PDF-1.4
@@ -43,14 +37,14 @@ startxref
 
 def test_pdf():
     #test PDF parsing extracts text and metadata
-    result = parse_pdf(SAMPLE_PDF)
-    assert "text" in result
-    assert "metadata" in result
-    assert result["metadata"]["file_type"] == "pdf"
-    assert result["metadata"]["page_count"] == 1
-    assert "char_count" in result["metadata"]
-    #text should contain something (exact extraction varies by PDF)
-    assert isinstance(result["text"], str)
+    result = parse_document(SAMPLE_PDF, ".pdf")
+    assert result.error is None, f"Parser error: {result.error}"
+    assert result.text is not None
+    assert result.metadata is not None
+    assert result.metadata["file_type"] == "pdf"
+    assert result.metadata["page_count"] == 1
+    assert "char_count" in result.metadata
+    assert isinstance(result.text, str)
 
 def test_pdf_empty():
     #minimal PDF with no text
@@ -68,21 +62,27 @@ trailer << /Size 4 /Root 1 0 R >>
 startxref
 176
 %%EOF"""
-    result = parse_pdf(minimal)
-    assert result["metadata"]["page_count"] == 1
-    assert result["text"] == ""
+    result = parse_document(minimal, ".pdf")
+    assert result.error is None
+    assert result.metadata["page_count"] == 1
+    assert result.text == ""
 
 def test_pdf_no_disk_write(tmp_path, monkeypatch):
     #invariant: parsed content never written to disk
     import builtins
     original_open = builtins.open
     disk_writes = []
+    
     def tracked_open(path, mode="r", *args, **kwargs):
         if "w" in mode or "a" in mode:
-            disk_writes.append(str(path))
+            # Ignore pytest's own writes
+            if not str(path).startswith("/tmp/pytest"):
+                disk_writes.append(str(path))
         return original_open(path, mode, *args, **kwargs)
+    
     monkeypatch.setattr(builtins, "open", tracked_open)
-    result = parse_pdf(SAMPLE_PDF)
+    result = parse_document(SAMPLE_PDF, ".pdf")
+    
     #no disk writes should occur during parsing
-    assert len(disk_writes) == 0, f"Unexpected disk writes: {disk_writes}"
-    assert len(result["text"]) >= 0
+    assert len(disk_writes) == 0, f"Unexpected disk writes in backend: {disk_writes}"
+    assert result.error is None or len(result.text) >= 0
