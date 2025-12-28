@@ -2,11 +2,14 @@ import sys
 import json
 import base64
 from parsers.pdf import parse_pdf
+from parsers.pptx import parse_pptx
 
 def parse(content: bytes, file_type: str) -> dict:
     #route to appropriate parser based on file type
     if file_type == ".pdf":
         return parse_pdf(content)
+    elif file_type == ".pptx":
+        return parse_pptx(content)
     #placeholder for other types
     return {
         "text": "",
