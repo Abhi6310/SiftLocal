@@ -148,3 +148,86 @@ def test_pptx_no_disk_write(tmp_path, monkeypatch):
     #no disk writes should occur during parsing
     assert len(disk_writes) == 0, f"Unexpected disk writes in backend: {disk_writes}"
     assert result.error is None or len(result.text) >= 0
+
+#CSV test data
+SAMPLE_CSV = b"name,age,city\nAlice,30,NYC\nBob,25,LA\n"
+EMPTY_CSV = b""
+
+def test_csv():
+    #test CSV parsing extracts text and metadata
+    result = parse_document(SAMPLE_CSV, ".csv")
+    assert result.error is None, f"Parser error: {result.error}"
+    assert result.text is not None
+    assert "Alice" in result.text
+    assert result.metadata is not None
+    assert result.metadata["file_type"] == "csv"
+    assert result.metadata["row_count"] == 3
+    assert result.metadata["column_count"] == 3
+    assert result.metadata["headers"] == ["name", "age", "city"]
+    assert "char_count" in result.metadata
+
+def test_csv_empty():
+    #test empty CSV
+    result = parse_document(EMPTY_CSV, ".csv")
+    assert result.error is None
+    assert result.metadata["row_count"] == 0
+    assert result.metadata["column_count"] == 0
+    assert result.text == ""
+
+def test_csv_no_disk_write(tmp_path, monkeypatch):
+    #invariant: parsed content never written to disk
+    import builtins
+    original_open = builtins.open
+    disk_writes = []
+
+    def tracked_open(path, mode="r", *args, **kwargs):
+        if "w" in mode or "a" in mode:
+            if not str(path).startswith("/tmp/pytest"):
+                disk_writes.append(str(path))
+        return original_open(path, mode, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "open", tracked_open)
+    result = parse_document(SAMPLE_CSV, ".csv")
+
+    assert len(disk_writes) == 0, f"Unexpected disk writes in backend: {disk_writes}"
+    assert result.error is None or len(result.text) >= 0
+
+#TXT test data
+SAMPLE_TXT = b"Hello World\nThis is a test file.\nLine three."
+EMPTY_TXT = b""
+
+def test_txt():
+    #test TXT parsing extracts text and metadata
+    result = parse_document(SAMPLE_TXT, ".txt")
+    assert result.error is None, f"Parser error: {result.error}"
+    assert result.text is not None
+    assert "Hello World" in result.text
+    assert result.metadata is not None
+    assert result.metadata["file_type"] == "txt"
+    assert result.metadata["line_count"] == 3
+    assert "char_count" in result.metadata
+
+def test_txt_empty():
+    #test empty TXT
+    result = parse_document(EMPTY_TXT, ".txt")
+    assert result.error is None
+    assert result.metadata["line_count"] == 0
+    assert result.text == ""
+
+def test_txt_no_disk_write(tmp_path, monkeypatch):
+    #invariant: parsed content never written to disk
+    import builtins
+    original_open = builtins.open
+    disk_writes = []
+
+    def tracked_open(path, mode="r", *args, **kwargs):
+        if "w" in mode or "a" in mode:
+            if not str(path).startswith("/tmp/pytest"):
+                disk_writes.append(str(path))
+        return original_open(path, mode, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "open", tracked_open)
+    result = parse_document(SAMPLE_TXT, ".txt")
+
+    assert len(disk_writes) == 0, f"Unexpected disk writes in backend: {disk_writes}"
+    assert result.error is None or len(result.text) >= 0

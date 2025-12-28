@@ -3,6 +3,8 @@ import json
 import base64
 from parsers.pdf import parse_pdf
 from parsers.pptx import parse_pptx
+from parsers.csv import parse_csv
+from parsers.txt import parse_txt
 
 def parse(content: bytes, file_type: str) -> dict:
     #route to appropriate parser based on file type
@@ -10,6 +12,10 @@ def parse(content: bytes, file_type: str) -> dict:
         return parse_pdf(content)
     elif file_type == ".pptx":
         return parse_pptx(content)
+    elif file_type == ".csv":
+        return parse_csv(content)
+    elif file_type == ".txt":
+        return parse_txt(content)
     #placeholder for other types
     return {
         "text": "",
