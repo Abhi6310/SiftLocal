@@ -43,3 +43,14 @@ export async function uploadDocument(file) {
   }
   return response.json();
 }
+
+export async function getReviewQueue() {
+  const response = await fetch(`${API_BASE}/api/review/queue`, {
+    credentials: 'include'
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to fetch review queue');
+  }
+  return response.json();
+}
