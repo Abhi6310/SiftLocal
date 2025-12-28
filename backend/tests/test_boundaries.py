@@ -1,5 +1,4 @@
 import pytest
-from pathlib import Path
 from fastapi.testclient import TestClient
 from app.main import app
 from app.core.database import init_database, get_connection, get_tables, DB_PATH
@@ -8,6 +7,12 @@ from app.services.memory_manager import DocumentState
 from app.services.sanitizer import detect_pii
 from app.services.secret_detector import detect_secrets
 from app.services.redaction import generate_redaction_map
+from app.core.llm_gate import (
+    register_document_content,
+    register_from_redaction_map,
+    validate_llm_payload,
+    clear_registry
+)
 
 client = TestClient(app)
 
@@ -22,11 +27,13 @@ Password: password=SuperSecret123!
 def clean_state():
     file_handler.clear_all()
     memory_manager.clear_all()
+    clear_registry()
     if DB_PATH.exists():
         DB_PATH.unlink()
     yield
     file_handler.clear_all()
     memory_manager.clear_all()
+    clear_registry()
     if DB_PATH.exists():
         DB_PATH.unlink()
 
@@ -80,13 +87,33 @@ def test_schema_contract_no_sensitive_tables():
     allowed = {'vault_config', 'preferences'}
     assert set(tables) == allowed, f"Unknown tables: {set(tables) - allowed}"
 
-@pytest.mark.skip(reason="Waiting for C17 - LLM gate not yet implemented")
 def test_llm_endpoint_rejects_document_text():
-    pass
+    #register document content with gate
+    register_document_content(TEST_TEXT_WITH_PII)
+    #try to send document text as LLM payload
+    poison_payload = {
+        "messages": [{
+            "role": "user",
+            "content": TEST_TEXT_WITH_PII
+        }]
+    }
+    result = validate_llm_payload(poison_payload)
+    assert not result.allowed
+    assert result.violation is not None
 
-@pytest.mark.skip(reason="Waiting for C17-C18 - metadata extraction not yet implemented")
 def test_metadata_only_allowed_in_llm_payload():
-    pass
+    register_document_content(TEST_TEXT_WITH_PII)
+    #metadata-only payload should be allowed
+    safe_payload = {
+        "context": {
+            "page_count": 3,
+            "word_count": 50,
+            "file_type": "txt"
+        },
+        "prompt": "Based on a document with 3 pages, what should I ask about?"
+    }
+    result = validate_llm_payload(safe_payload)
+    assert result.allowed
 
 def test_upload_endpoint_no_text_in_response():
     test_content = b"This is test content with email@example.com"
