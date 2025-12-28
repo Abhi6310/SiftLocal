@@ -12,6 +12,10 @@ RUN apt-get update && \
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+#install spaCy model at build time
+RUN python -m spacy download en_core_web_lg
+RUN python -c "import spacy; spacy.load('en_core_web_lg')"
+
 #copy parser requirements and install
 COPY parser/requirements.txt parser-requirements.txt
 RUN pip install --no-cache-dir -r parser-requirements.txt
