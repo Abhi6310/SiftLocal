@@ -54,3 +54,66 @@ export async function getReviewQueue() {
   }
   return response.json();
 }
+
+export async function approveChunk(chunkId) {
+  const response = await fetch(`${API_BASE}/api/review/${chunkId}/approve`, {
+    method: 'POST',
+    credentials: 'include'
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to approve chunk');
+  }
+  return response.json();
+}
+
+export async function rejectChunk(chunkId) {
+  const response = await fetch(`${API_BASE}/api/review/${chunkId}/reject`, {
+    method: 'POST',
+    credentials: 'include'
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to reject chunk');
+  }
+  return response.json();
+}
+
+export async function bulkApprove(chunkIds) {
+  const response = await fetch(`${API_BASE}/api/review/bulk/approve`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ chunk_ids: chunkIds })
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to bulk approve');
+  }
+  return response.json();
+}
+
+export async function bulkReject(chunkIds) {
+  const response = await fetch(`${API_BASE}/api/review/bulk/reject`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ chunk_ids: chunkIds })
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to bulk reject');
+  }
+  return response.json();
+}
+
+export async function getReviewCounts() {
+  const response = await fetch(`${API_BASE}/api/review/counts`, {
+    credentials: 'include'
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to fetch review counts');
+  }
+  return response.json();
+}

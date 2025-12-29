@@ -30,7 +30,7 @@ export default function ReviewPage() {
       <h1 style={{ marginBottom: '24px' }}>Review Queue</h1>
       {loading && <p>Loading...</p>}
       {error && <p style={{ color: 'red' }}>{error}</p>}
-      {data && <ReviewQueue chunks={data.chunks} totalCount={data.total_count} />}
+      {data && <ReviewQueue chunks={data.chunks} totalCount={data.total_count} onRefresh={fetchQueue} />}
       <button
         onClick={fetchQueue}
         disabled={loading}

@@ -63,6 +63,9 @@ def cleanup_document(doc_id: str) -> None:
     clear_sanitized_content(doc_id)
     if doc_id in _document_states:
         del _document_states[doc_id]
+    #late import to avoid circular dependency
+    from app.services import review_manager
+    review_manager.clear_status(doc_id)
 
 def get_memory_stats() -> dict:
     return {
@@ -76,3 +79,6 @@ def clear_all() -> None:
     _document_states.clear()
     _raw_extracts.clear()
     _sanitized_content.clear()
+    #late import to avoid circular dependency
+    from app.services import review_manager
+    review_manager.clear_all_status()
